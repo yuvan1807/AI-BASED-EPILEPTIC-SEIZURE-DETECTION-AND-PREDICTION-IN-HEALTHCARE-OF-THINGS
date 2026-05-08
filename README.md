@@ -1,0 +1,2 @@
+# AI-BASED-EPILEPTIC-SEIZURE-DETECTION-AND-PREDICTION-IN-HEALTHCARE-OF-THINGS
+CNN, LSTM, BiLSTM, models for epileptic seizure detection using EEG signals
