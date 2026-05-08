@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeizureGuard AI - Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0a0f1e;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Live EEG Video Background - Darkened */
+        #live-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -2;
+            opacity: 0.25; /* Reduced opacity for darker effect */
+            filter: hue-rotate(140deg) saturate(1.2) brightness(0.7); /* Added brightness reduction */
+        }
+
+        /* Animated EEG Overlay - Darker Purple/Blue Theme */
+        .eeg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 30% 40%, rgba(75, 0, 130, 0.2) 0%, transparent 40%),
+                radial-gradient(circle at 70% 60%, rgba(25, 25, 112, 0.2) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+        /* Animated EEG Lines Canvas - Darker colors */
+        #eegCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.2; /* Reduced opacity */
+            pointer-events: none;
+        }
+
+        /* Floating Particles - Darker theme */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px; /* Slightly smaller */
+            height: 3px;
+            background: #4a4a8a; /* Darker purple-blue */
+            border-radius: 50%;
+            box-shadow: 0 0 10px #4a4a8a;
+            animation: floatParticle 15s linear infinite;
+        }
+
+        @keyframes floatParticle {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            20% { opacity: 0.6; } /* Reduced opacity */
+            80% { opacity: 0.6; }
+            100% {
+                transform: translateY(-100px) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px 40px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Navigation - Darker background */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: rgba(8, 12, 25, 0.5); /* Darker background */
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            border: 1px solid rgba(100, 100, 200, 0.2); /* Darker border */
+            margin-bottom: 60px;
+            animation: slideDown 0.8s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .logo i {
+            color: #6a5acd; /* Slate blue */
+            font-size: 32px;
+            animation: brainPulse 2s ease infinite;
+        }
+
+        @keyframes brainPulse {
+            0%, 100% { transform: scale(1); text-shadow: 0 0 20px #6a5acd; }
+            50% { transform: scale(1.1); text-shadow: 0 0 40px #8a6de0; }
+        }
+
+        .logo span {
+            background: linear-gradient(135deg, #fff, #b0a0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+        }
+
+        .nav-links a {
+            color: #e0e0ff; /* Softer white */
+            text-decoration: none;
+            font-weight: 500;
+            position: relative;
+            padding: 5px 0;
+            font-size: 16px;
+        }
+
+        .nav-links a::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #6a5acd, #b0a0ff);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::before,
+        .nav-links a.active::before {
+            width: 100%;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn-login, .btn-signup {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-size: 14px;
+        }
+
+        .btn-login {
+            background: transparent;
+            border: 2px solid #6a5acd;
+            color: #b0a0ff;
+        }
+
+        .btn-signup {
+            background: linear-gradient(135deg, #4a3f8a, #6a5acd);
+            color: white;
+        }
+
+        .btn-login:hover, .btn-signup:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(106, 90, 205, 0.4);
+        }
+
+        /* Hero Section */
+        .hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            margin-bottom: 100px;
+            animation: fadeInUp 1s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(106, 90, 205, 0.1);
+            border: 1px solid rgba(106, 90, 205, 0.3);
+            padding: 10px 20px;
+            border-radius: 50px;
+            margin-bottom: 30px;
+            animation: glowPulse 3s ease infinite;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(106, 90, 205, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(106, 90, 205, 0.6); }
+        }
+
+        .hero-badge i {
+            color: #b0a0ff;
+            animation: rotate 4s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        h1 {
+            font-size: 64px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, #fff, #d0c0ff, #b0a0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 5s ease infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: rgba(224, 224, 255, 0.8);
+            margin-bottom: 40px;
+            line-height: 1.8;
+            max-width: 600px;
+        }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            gap: 50px;
+            margin-bottom: 40px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: 800;
+            color: #b0a0ff;
+            display: block;
+            text-shadow: 0 0 30px #6a5acd;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: rgba(224, 224, 255, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* CTA Buttons */
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .btn-primary, .btn-secondary {
+            padding: 18px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4a3f8a, #6a5acd);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid rgba(106, 90, 205, 0.3);
+            color: #e0e0ff;
+        }
+
+        .btn-primary:hover, .btn-secondary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(106, 90, 205, 0.4);
+        }
+
+        /* Hero Image */
+        .hero-image {
+            position: relative;
+            animation: float 6s ease infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-30px); }
+        }
+
+        .hero-image img {
+            width: 100%;
+            border-radius: 30px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Floating Cards - Darker theme */
+        .floating-card {
+            position: absolute;
+            background: rgba(20, 20, 40, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 15px 25px;
+            border-radius: 50px;
+            border: 1px solid rgba(106, 90, 205, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: cardFloat 3s ease infinite;
+        }
+
+        .floating-card i {
+            color: #b0a0ff;
+            font-size: 20px;
+        }
+
+        .card-1 {
+            top: 20%;
+            left: -30px;
+            animation-delay: 0s;
+        }
+
+        .card-2 {
+            bottom: 20%;
+            right: -30px;
+            animation-delay: 0.5s;
+        }
+
+        @keyframes cardFloat {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(5px) translateY(-5px); }
+            50% { transform: translateX(10px) translateY(0); }
+            75% { transform: translateX(5px) translateY(5px); }
+        }
+
+        /* Signal Traveling Effect - Darker theme */
+        .analysis-tile {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: rgba(106, 90, 205, 0.05);
+            border: 1px solid rgba(106, 90, 205, 0.2);
+            padding: 12px 25px;
+            border-radius: 60px;
+            margin-top: 40px;
+            backdrop-filter: blur(10px);
+            animation: tileGlow 2s ease infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes tileGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(106, 90, 205, 0.2); }
+            50% { box-shadow: 0 0 30px rgba(106, 90, 205, 0.4); }
+        }
+
+        .signal-container {
+            position: relative;
+            width: 120px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .signal-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #6a5acd, #b0a0ff, transparent);
+            animation: signalFlow 2s linear infinite;
+        }
+
+        @keyframes signalFlow {
+            0% { transform: translateX(-100%); opacity: 0; }
+            50% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(100%); opacity: 0; }
+        }
+
+        .signal-dots {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .signal-dot {
+            width: 6px;
+            height: 6px;
+            background: #b0a0ff;
+            border-radius: 50%;
+            animation: dotPulse 1.5s ease infinite;
+            box-shadow: 0 0 10px #6a5acd;
+        }
+
+        @keyframes dotPulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.5); opacity: 1; background: #d0c0ff; }
+        }
+
+        .signal-wave {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .signal-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .signal-pulse {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(106, 90, 205, 0.2) 0%, transparent 70%);
+            animation: pulseRing 2s ease infinite;
+        }
+
+        @keyframes pulseRing {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        .analysis-text {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .analysis-text i {
+            color: #b0a0ff;
+            font-size: 20px;
+            animation: iconPulse 2s ease infinite;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); color: #d0c0ff; }
+        }
+
+        .accuracy-badge {
+            background: linear-gradient(135deg, #4a3f8a, #6a5acd);
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+            margin-left: 5px;
+            animation: badgeGlow 2s ease infinite;
+        }
+
+        @keyframes badgeGlow {
+            0%, 100% { box-shadow: 0 0 10px #6a5acd; }
+            50% { box-shadow: 0 0 20px #b0a0ff; }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            h1 {
+                font-size: 48px;
+            }
+            
+            .stats {
+                justify-content: center;
+            }
+            
+            .cta-buttons {
+                justify-content: center;
+            }
+            
+            .navbar {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 20px;
+            }
+
+            .analysis-tile {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 15px;
+            }
+            
+            .signal-container {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Live Video Background -->
+    <video id="live-bg" autoplay muted loop playsinline>
+        <source src="https://videos.pexels.com/video-files/3121257/3121257-uhd_2560_1440_25fps.mp4" type="video/mp4">
+        <source src="https://videos.pexels.com/video-files/2033618/2033618-uhd_2560_1440_25fps.mp4" type="video/mp4">
+    </video>
+
+    <!-- Darker EEG Overlay -->
+    <div class="eeg-overlay"></div>
+
+    <!-- Animated EEG Canvas -->
+    <canvas id="eegCanvas"></canvas>
+
+    <!-- Floating Particles -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="logo" onclick="window.location.href='/'">
+                <i class="fas fa-brain"></i>
+                <span>SeizureGuard AI</span>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="active">Home</a>
+                <a href="about">About</a>
+                <a href="features">Features</a>
+                <a href="how-it-works">How It Works</a>
+                <a href="contact">Contact</a>
+            </div>
+            <div class="nav-buttons">
+                <button class="btn-login" onclick="window.location.href='login'">Login</button>
+                <button class="btn-signup" onclick="window.location.href='signup'">Sign Up</button>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>AI-Powered Healthcare Solution</span>
+                </div>
+                
+                <h1>Early Detection of Epileptic Seizures with AI</h1>
+                
+                <p>Advanced deep learning system for real-time seizure detection from EEG signals in Internet of Healthcare Things (IoHT). Upload your EEG image and get instant analysis.</p>
+                
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-number">98%</span>
+                        <span class="stat-label">Accuracy</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">24/7</span>
+                        <span class="stat-label">Monitoring</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">10k+</span>
+                        <span class="stat-label">Patients</span>
+                    </div>
+                </div>
+                
+                <div class="cta-buttons">
+                    <button class="btn-primary" onclick="window.location.href='upload'">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        Upload EEG Image
+                    </button>
+                    <button class="btn-secondary" onclick="window.location.href='demo'">
+                        <i class="fas fa-play-circle"></i>
+                        Watch Demo
+                    </button>
+                </div>
+                
+                <!-- Signal Traveling Effect Tile -->
+                <div class="analysis-tile">
+                    <div class="signal-container">
+                        <div class="signal-line"></div>
+                        <div class="signal-dots">
+                            <div class="signal-dot" style="animation-delay: 0s;"></div>
+                            <div class="signal-dot" style="animation-delay: 0.2s;"></div>
+                            <div class="signal-dot" style="animation-delay: 0.4s;"></div>
+                            <div class="signal-dot" style="animation-delay: 0.6s;"></div>
+                            <div class="signal-dot" style="animation-delay: 0.8s;"></div>
+                        </div>
+                        <div class="signal-wave">
+                            <svg viewBox="0 0 100 20" class="signal-svg">
+                                <path d="M0,10 Q10,0 20,10 T40,10 T60,10 T80,10 T100,10" stroke="#6a5acd" fill="none" stroke-width="1.5">
+                                    <animate attributeName="d" dur="3s" repeatCount="indefinite"
+                                        values="M0,10 Q10,0 20,10 T40,10 T60,10 T80,10 T100,10;
+                                                M0,10 Q10,20 20,10 T40,10 T60,10 T80,10 T100,10;
+                                                M0,10 Q10,0 20,10 T40,10 T60,10 T80,10 T100,10"/>
+                                </path>
+                                <circle r="2" fill="#b0a0ff">
+                                    <animateMotion dur="3s" repeatCount="indefinite" path="M0,10 Q10,0 20,10 T40,10 T60,10 T80,10 T100,10"/>
+                                </circle>
+                            </svg>
+                        </div>
+                        <div class="signal-pulse"></div>
+                    </div>
+                    <div class="analysis-text">
+                        <i class="fas fa-wave-square"></i>
+                        <span>Real-time Analysis</span>
+                        <div class="accuracy-badge">98% Accurate</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="hero-image">
+                <img src="seizure-image.jpg" alt="AI Brain Analysis">
+                <div class="floating-card card-1">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Real-time Analysis</span>
+                </div>
+                <div class="floating-card card-2">
+                    <i class="fas fa-check-circle"></i>
+                    <span>98% Accurate</span>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // EEG Wave Animation on Canvas - Darker colors
+        function initEEGCanvas() {
+            const canvas = document.getElementById('eegCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            let time = 0;
+            
+            function drawEEGWaves() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                for (let wave = 0; wave < 5; wave++) {
+                    const yOffset = canvas.height * (0.2 + wave * 0.15);
+                    const amplitude = 30 + wave * 10;
+                    const frequency = 0.02 + wave * 0.005;
+                    
+                    ctx.beginPath();
+                    ctx.strokeStyle = wave % 2 === 0 ? '#6a5acd' : '#4a3f8a';
+                    ctx.lineWidth = 2;
+                    ctx.globalAlpha = 0.2;
+                    
+                    for (let x = 0; x < canvas.width; x += 5) {
+                        const y = yOffset + 
+                                 Math.sin(x * frequency + time) * amplitude * 0.5 +
+                                 Math.sin(x * frequency * 2 + time * 1.5) * amplitude * 0.3 +
+                                 Math.sin(x * frequency * 3 + time * 2) * amplitude * 0.2;
+                        
+                        if (x === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+                    
+                    ctx.stroke();
+                }
+                
+                time += 0.05;
+                requestAnimationFrame(drawEEGWaves);
+            }
+            
+            drawEEGWaves();
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const canvas = document.getElementById('eegCanvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Initialize everything
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            initEEGCanvas();
+        });
+    </script>
+</body>
+</html>

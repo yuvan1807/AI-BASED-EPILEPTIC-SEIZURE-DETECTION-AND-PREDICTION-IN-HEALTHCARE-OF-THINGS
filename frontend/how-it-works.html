@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeizureGuard AI - How It Works</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0a0f1e;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Live EEG Video Background */
+        #live-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -2;
+            opacity: 0.4;
+            filter: hue-rotate(140deg) saturate(1.5);
+        }
+
+        /* Animated EEG Overlay */
+        .eeg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 30% 40%, rgba(0, 255, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 70% 60%, rgba(255, 0, 150, 0.15) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+        /* Animated EEG Lines Canvas */
+        #eegCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* Floating Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: cyan;
+            border-radius: 50%;
+            box-shadow: 0 0 15px cyan;
+            animation: floatParticle 15s linear infinite;
+        }
+
+        @keyframes floatParticle {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% {
+                transform: translateY(-100px) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px 40px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Navigation */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: rgba(10, 15, 30, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            margin-bottom: 60px;
+            animation: slideDown 0.8s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .logo i {
+            color: cyan;
+            font-size: 32px;
+            animation: brainPulse 2s ease infinite;
+        }
+
+        @keyframes brainPulse {
+            0%, 100% { transform: scale(1); text-shadow: 0 0 20px cyan; }
+            50% { transform: scale(1.1); text-shadow: 0 0 40px cyan; }
+        }
+
+        .logo span {
+            background: linear-gradient(135deg, #fff, cyan);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            position: relative;
+            padding: 5px 0;
+            font-size: 16px;
+        }
+
+        .nav-links a::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, cyan, magenta);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::before,
+        .nav-links a.active::before {
+            width: 100%;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn-login, .btn-signup {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-size: 14px;
+        }
+
+        .btn-login {
+            background: transparent;
+            border: 2px solid cyan;
+            color: cyan;
+        }
+
+        .btn-signup {
+            background: linear-gradient(135deg, cyan, magenta);
+            color: white;
+        }
+
+        .btn-login:hover, .btn-signup:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.4);
+        }
+
+        /* Page Header */
+        .page-header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-header h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #fff, cyan);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .page-header p {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Steps Section */
+        .steps-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-bottom: 80px;
+            position: relative;
+        }
+
+        .steps-container::before {
+            content: '';
+            position: absolute;
+            top: 30%;
+            left: 15%;
+            width: 70%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, cyan, magenta, transparent);
+            z-index: -1;
+            animation: lineGlow 3s ease infinite;
+        }
+
+        @keyframes lineGlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .step-card {
+            background: rgba(10, 15, 30, 0.5);
+            backdrop-filter: blur(10px);
+            padding: 40px 30px;
+            border-radius: 30px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.8s ease backwards;
+            overflow: hidden;
+        }
+
+        .step-card:nth-child(1) { animation-delay: 0.1s; }
+        .step-card:nth-child(2) { animation-delay: 0.2s; }
+        .step-card:nth-child(3) { animation-delay: 0.3s; }
+
+        .step-card:hover {
+            transform: translateY(-10px);
+            border-color: cyan;
+            box-shadow: 0 30px 60px rgba(0, 255, 255, 0.3);
+        }
+
+        .step-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            animation: rotate 10s linear infinite;
+        }
+
+        .step-number {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 48px;
+            font-weight: 800;
+            color: rgba(0, 255, 255, 0.2);
+            z-index: 1;
+        }
+
+        .step-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(0, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            font-size: 40px;
+            color: cyan;
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .step-card:hover .step-icon {
+            transform: rotateY(360deg);
+            background: cyan;
+            color: #0a0f1e;
+        }
+
+        .step-card h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: cyan;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-card p {
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-time {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 5px 15px;
+            background: rgba(0, 255, 255, 0.1);
+            border-radius: 30px;
+            font-size: 14px;
+            color: cyan;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Process Flow */
+        .process-flow {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 80px;
+        }
+
+        .flow-item {
+            text-align: center;
+            position: relative;
+        }
+
+        .flow-item:not(:last-child)::after {
+            content: '\f054';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 30%;
+            right: -15px;
+            color: cyan;
+            animation: arrowPulse 1.5s ease infinite;
+        }
+
+        @keyframes arrowPulse {
+            0%, 100% { transform: translateX(0); opacity: 0.5; }
+            50% { transform: translateX(5px); opacity: 1; }
+        }
+
+        .flow-icon {
+            width: 70px;
+            height: 70px;
+            background: rgba(0, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 28px;
+            color: cyan;
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .flow-item:hover .flow-icon {
+            background: cyan;
+            color: #0a0f1e;
+            transform: scale(1.1);
+        }
+
+        .flow-item h4 {
+            font-size: 16px;
+            color: white;
+            margin-bottom: 5px;
+        }
+
+        .flow-item p {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* FAQ Section */
+        .faq-section {
+            margin-bottom: 60px;
+        }
+
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+        }
+
+        .faq-item {
+            background: rgba(10, 15, 30, 0.5);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .faq-item:hover {
+            border-color: cyan;
+            transform: translateX(5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.2);
+        }
+
+        .faq-item h4 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: cyan;
+        }
+
+        .faq-item h4 i {
+            font-size: 20px;
+        }
+
+        .faq-item p {
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            font-size: 14px;
+            padding-left: 30px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .steps-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .steps-container::before {
+                display: none;
+            }
+            
+            .process-flow {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .flow-item:not(:last-child)::after {
+                display: none;
+            }
+            
+            .faq-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .navbar {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .steps-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .process-flow {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-header h1 {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Live Video Background -->
+    <video id="live-bg" autoplay muted loop playsinline>
+        <source src="https://videos.pexels.com/video-files/3121257/3121257-uhd_2560_1440_25fps.mp4" type="video/mp4">
+        <source src="https://videos.pexels.com/video-files/2033618/2033618-uhd_2560_1440_25fps.mp4" type="video/mp4">
+    </video>
+
+    <!-- EEG Overlay -->
+    <div class="eeg-overlay"></div>
+
+    <!-- Animated EEG Canvas -->
+    <canvas id="eegCanvas"></canvas>
+
+    <!-- Floating Particles -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="logo" onclick="window.location.href='/'">
+                <i class="fas fa-brain"></i>
+                <span>SeizureGuard AI</span>
+            </div>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="about">About</a>
+                <a href="features">Features</a>
+                <a href="how-it-works" class="active">How It Works</a>
+                <a href="contact">Contact</a>
+            </div>
+            <div class="nav-buttons">
+                <button class="btn-login" onclick="window.location.href='login'">Login</button>
+                <button class="btn-signup" onclick="window.location.href='signup'">Sign Up</button>
+            </div>
+        </nav>
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>How SeizureGuard AI Works</h1>
+            <p>Three simple steps to detect epileptic seizures from EEG signals</p>
+        </div>
+
+        <!-- Steps Section -->
+        <div class="steps-container">
+            <!-- Step 1 -->
+            <div class="step-card">
+                <div class="step-number">01</div>
+                <div class="step-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h3>Upload EEG Image</h3>
+                <p>Upload your EEG signal image in PNG, JPG, or BMP format. Our system accepts images up to 16MB.</p>
+                <span class="step-time"><i class="far fa-clock"></i> Takes 2 seconds</span>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step-card">
+                <div class="step-number">02</div>
+                <div class="step-icon">
+                    <i class="fas fa-microchip"></i>
+                </div>
+                <h3>AI Analysis</h3>
+                <p>Our deep learning model analyzes EEG patterns, detecting abnormalities and seizure indicators.</p>
+                <span class="step-time"><i class="far fa-clock"></i> Takes 5 seconds</span>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step-card">
+                <div class="step-number">03</div>
+                <div class="step-icon">
+                    <i class="fas fa-file-medical-alt"></i>
+                </div>
+                <h3>Get Results</h3>
+                <p>Receive instant results with confidence scores, seizure probability, and detailed analysis report.</p>
+                <span class="step-time"><i class="far fa-clock"></i> Instant</span>
+            </div>
+        </div>
+
+        <!-- Process Flow -->
+        <h2 class="page-header" style="font-size: 36px; margin-bottom: 30px;">Detailed Process Flow</h2>
+        <div class="process-flow">
+            <div class="flow-item">
+                <div class="flow-icon">
+                    <i class="fas fa-image"></i>
+                </div>
+                <h4>Input EEG</h4>
+                <p>Raw signal image</p>
+            </div>
+            <div class="flow-item">
+                <div class="flow-icon">
+                    <i class="fas fa-filter"></i>
+                </div>
+                <h4>Preprocessing</h4>
+                <p>Noise reduction</p>
+            </div>
+            <div class="flow-item">
+                <div class="flow-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h4>Deep Learning</h4>
+                <p>CNN + LSTM model</p>
+            </div>
+            <div class="flow-item">
+                <div class="flow-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h4>Classification</h4>
+                <p>Seizure detection</p>
+            </div>
+        </div>
+
+        <!-- FAQ Section -->
+        <h2 class="page-header" style="font-size: 36px; margin-bottom: 30px;">Frequently Asked Questions</h2>
+        <div class="faq-section">
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <h4><i class="fas fa-question-circle"></i> What EEG formats are supported?</h4>
+                    <p>We support PNG, JPG, JPEG, and BMP formats for EEG signal images. The image should clearly show the EEG waveform pattern.</p>
+                </div>
+                <div class="faq-item">
+                    <h4><i class="fas fa-question-circle"></i> How accurate is the detection?</h4>
+                    <p>Our model achieves 98% accuracy in detecting epileptic seizures, validated on thousands of EEG samples from CHB-MIT database.</p>
+                </div>
+                <div class="faq-item">
+                    <h4><i class="fas fa-question-circle"></i> How long does analysis take?</h4>
+                    <p>The entire process takes less than 10 seconds from upload to results, with most analyses completing in 5 seconds.</p>
+                </div>
+                <div class="faq-item">
+                    <h4><i class="fas fa-question-circle"></i> Is my data secure?</h4>
+                    <p>Yes, all uploaded images are processed securely and automatically deleted after analysis. We never store patient data.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // EEG Wave Animation on Canvas
+        function initEEGCanvas() {
+            const canvas = document.getElementById('eegCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            let time = 0;
+            
+            function drawEEGWaves() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                for (let wave = 0; wave < 5; wave++) {
+                    const yOffset = canvas.height * (0.2 + wave * 0.15);
+                    const amplitude = 30 + wave * 10;
+                    const frequency = 0.02 + wave * 0.005;
+                    
+                    ctx.beginPath();
+                    ctx.strokeStyle = wave % 2 === 0 ? 'cyan' : 'magenta';
+                    ctx.lineWidth = 2;
+                    ctx.globalAlpha = 0.3;
+                    
+                    for (let x = 0; x < canvas.width; x += 5) {
+                        const y = yOffset + 
+                                 Math.sin(x * frequency + time) * amplitude * 0.5 +
+                                 Math.sin(x * frequency * 2 + time * 1.5) * amplitude * 0.3 +
+                                 Math.sin(x * frequency * 3 + time * 2) * amplitude * 0.2;
+                        
+                        if (x === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+                    
+                    ctx.stroke();
+                }
+                
+                time += 0.05;
+                requestAnimationFrame(drawEEGWaves);
+            }
+            
+            drawEEGWaves();
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const canvas = document.getElementById('eegCanvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Initialize everything
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            initEEGCanvas();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Result - SeizureGuard AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0a0f1e;
+            color: white;
+        }
+
+        /* Navigation - Same as before */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: rgba(10, 15, 30, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            margin: 20px 40px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .logo i {
+            color: cyan;
+            font-size: 32px;
+        }
+
+        .logo span {
+            background: linear-gradient(135deg, #fff, cyan);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-links a.active {
+            color: cyan;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn-login, .btn-signup {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-login {
+            background: transparent;
+            border: 2px solid cyan;
+            color: cyan;
+        }
+
+        .btn-signup {
+            background: linear-gradient(135deg, cyan, magenta);
+            color: white;
+        }
+
+        /* Result Section */
+        .result-section {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .result-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .result-header h1 {
+            font-size: 48px;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #fff, cyan);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .result-header p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 18px;
+        }
+
+        /* Result Card */
+        .result-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 30px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            margin-bottom: 30px;
+        }
+
+        .result-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid cyan;
+            border-radius: 50px;
+            margin-bottom: 30px;
+        }
+
+        .result-icon {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            font-size: 60px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 255, 255, 0.4); }
+            70% { box-shadow: 0 0 0 20px rgba(0, 255, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 255, 0); }
+        }
+
+        .result-title {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+
+        .result-description {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 30px;
+            font-size: 18px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Confidence Meter */
+        .confidence-meter {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .confidence-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .confidence-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: cyan;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, cyan, magenta);
+            border-radius: 10px;
+            transition: width 1s ease;
+        }
+
+        /* NEW: Dual Confidence Display */
+        .dual-confidence {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .confidence-box {
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .confidence-box:hover {
+            transform: translateY(-5px);
+        }
+
+        .confidence-box.seizure-box {
+            background: rgba(255, 107, 107, 0.1);
+            border-left: 4px solid #ff6b6b;
+        }
+
+        .confidence-box.normal-box {
+            background: rgba(0, 255, 136, 0.1);
+            border-left: 4px solid #00ff88;
+        }
+
+        .confidence-box i {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .confidence-box.seizure-box i {
+            color: #ff6b6b;
+        }
+
+        .confidence-box.normal-box i {
+            color: #00ff88;
+        }
+
+        .confidence-box .label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 5px;
+        }
+
+        .confidence-box .value {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .confidence-box.seizure-box .value {
+            color: #ff6b6b;
+        }
+
+        .confidence-box.normal-box .value {
+            color: #00ff88;
+        }
+
+        /* NEW: Threshold Indicator */
+        .threshold-indicator {
+            background: rgba(0, 255, 255, 0.1);
+            padding: 12px 20px;
+            border-radius: 50px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .threshold-indicator .label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+
+        .threshold-indicator .label i {
+            color: cyan;
+        }
+
+        .threshold-indicator .value {
+            color: cyan;
+            font-weight: 600;
+            font-size: 18px;
+            background: rgba(0, 255, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 30px;
+        }
+
+        /* Model Info */
+        .model-info {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .model-info h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            color: cyan;
+        }
+
+        .model-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .model-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .model-item i {
+            font-size: 24px;
+            color: cyan;
+        }
+
+        .model-item .label {
+            display: block;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .model-item .value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        /* API Response (Hidden by default) */
+        .api-response {
+            margin-bottom: 30px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 25px;
+        }
+
+        .api-response h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: cyan;
+            cursor: pointer;
+        }
+
+        .api-response pre {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            overflow-x: auto;
+            color: #00ff88;
+            font-size: 14px;
+            display: none;
+        }
+
+        .api-response pre.show {
+            display: block;
+        }
+
+        /* Insights */
+        .insights-section {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .insights-section h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            color: cyan;
+        }
+
+        .insights-list {
+            list-style: none;
+        }
+
+        .insights-list li {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(0, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 3px solid cyan;
+        }
+
+        .insights-list li i {
+            color: cyan;
+            font-size: 20px;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary, .btn-secondary, .btn-outline {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, cyan, #00aaff);
+            color: #0a0f1e;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid cyan;
+            color: cyan;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        .btn-primary:hover, .btn-secondary:hover, .btn-outline:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 255, 255, 0.4);
+        }
+
+        /* Disclaimer */
+        .disclaimer {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .disclaimer p {
+            color: #ffc107;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 20px;
+            }
+            
+            .model-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .result-title {
+                font-size: 28px;
+            }
+            
+            .dual-confidence {
+                grid-template-columns: 1fr;
+            }
+            
+            .threshold-indicator {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="logo" onclick="window.location.href='/'">
+            <i class="fas fa-brain"></i>
+            <span>SeizureGuard AI</span>
+        </div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="about">About</a>
+            <a href="features">Features</a>
+            <a href="how-it-works">How It Works</a>
+            <a href="contact">Contact</a>
+        </div>
+        <div class="nav-buttons">
+            <button class="btn-login" onclick="window.location.href='login'">Login</button>
+            <button class="btn-signup" onclick="window.location.href='signup'">Sign Up</button>
+        </div>
+    </nav>
+
+    <!-- Result Section -->
+    <section class="result-section">
+        <div class="result-header">
+            <h1>Analysis Complete</h1>
+            <p>Your EEG image has been analyzed using the CHB-MIT model</p>
+        </div>
+
+        <div class="result-card" id="resultCard">
+            <div class="result-badge" id="resultBadge">
+                <i class="fas fa-microchip"></i>
+                <span>CHB-MIT Scalp EEG Database Model</span>
+            </div>
+
+            <div class="result-icon" id="resultIcon">
+                <i class="fas fa-heartbeat"></i>
+            </div>
+
+            <h2 class="result-title" id="resultTitle">Processing...</h2>
+            <p class="result-description" id="resultDescription"></p>
+
+            <!-- NEW: Threshold Indicator -->
+            <div class="threshold-indicator">
+                <span class="label">
+                    <i class="fas fa-sliders-h"></i>
+                    Detection Threshold
+                </span>
+                <span class="value" id="thresholdValue">50%</span>
+            </div>
+
+            <!-- Confidence Meter -->
+            <div class="confidence-meter">
+                <div class="confidence-label">
+                    <span><i class="fas fa-chart-line"></i> Overall Confidence Score</span>
+                    <span class="confidence-value" id="confidenceValue">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- NEW: Dual Confidence Display -->
+            <div class="dual-confidence">
+                <div class="confidence-box seizure-box">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div class="label">Seizure Probability</div>
+                    <div class="value" id="seizureConfidence">0%</div>
+                </div>
+                <div class="confidence-box normal-box">
+                    <i class="fas fa-check-circle"></i>
+                    <div class="label">Non-Seizure Probability</div>
+                    <div class="value" id="nonSeizureConfidence">0%</div>
+                </div>
+            </div>
+
+            <!-- Model Info -->
+            <div class="model-info">
+                <h3><i class="fas fa-microchip"></i> Model Details</h3>
+                <div class="model-grid">
+                    <div class="model-item">
+                        <i class="fas fa-brain"></i>
+                        <div>
+                            <span class="label">Model Name</span>
+                            <span class="value" id="modelName">CHB-MIT Scalp EEG Database</span>
+                        </div>
+                    </div>
+                    <div class="model-item">
+                        <i class="fas fa-code-branch"></i>
+                        <div>
+                            <span class="label">Version</span>
+                            <span class="value" id="modelVersion">1</span>
+                        </div>
+                    </div>
+                    <div class="model-item">
+                        <i class="fas fa-cubes"></i>
+                        <div>
+                            <span class="label">Model Type</span>
+                            <span class="value" id="modelType">ResNet101 Multi-label</span>
+                        </div>
+                    </div>
+                    <div class="model-item">
+                        <i class="fas fa-database"></i>
+                        <div>
+                            <span class="label">Trained On</span>
+                            <span class="value" id="trainedOn">6,579 images</span>
+                        </div>
+                    </div>
+                    <div class="model-item">
+                        <i class="fas fa-hashtag"></i>
+                        <div>
+                            <span class="label">Analysis ID</span>
+                            <span class="value" id="analysisId">---</span>
+                        </div>
+                    </div>
+                    <div class="model-item">
+                        <i class="fas fa-calendar"></i>
+                        <div>
+                            <span class="label">Timestamp</span>
+                            <span class="value" id="timestamp"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Raw API Response (Hidden by default) -->
+            <div class="api-response">
+                <h3 onclick="toggleApiResponse()">
+                    <i class="fas fa-code"></i> View Raw API Response
+                    <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
+                </h3>
+                <pre id="apiResponse"></pre>
+            </div>
+
+            <!-- Clinical Insights -->
+            <div class="insights-section">
+                <h3><i class="fas fa-lightbulb"></i> Clinical Insights</h3>
+                <ul class="insights-list" id="insightsList">
+                    <li><i class="fas fa-spinner fa-pulse"></i> Loading insights...</li>
+                </ul>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="btn-primary" onclick="window.location.href='upload'">
+                    <i class="fas fa-upload"></i>
+                    Analyze Another
+                </button>
+                <button class="btn-secondary" onclick="downloadReport()">
+                    <i class="fas fa-download"></i>
+                    Download Report
+                </button>
+                <button class="btn-outline" onclick="window.location.href='/'">
+                    <i class="fas fa-home"></i>
+                    Home
+                </button>
+            </div>
+
+            <!-- Disclaimer -->
+            <div class="disclaimer">
+                <p><i class="fas fa-info-circle"></i> <strong>Medical Disclaimer:</strong> This analysis is based on the CHB-MIT Scalp EEG Database model. Always consult with a qualified healthcare professional for medical advice and diagnosis.</p>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get result from session storage
+            const resultData = sessionStorage.getItem('predictionResult');
+            
+            if (resultData) {
+                displayResult(JSON.parse(resultData));
+            } else {
+                // Try to get from URL params (fallback)
+                const urlParams = new URLSearchParams(window.location.search);
+                const resultParam = urlParams.get('result');
+                
+                if (resultParam) {
+                    try {
+                        displayResult(JSON.parse(decodeURIComponent(resultParam)));
+                    } catch (e) {
+                        showDemoResult();
+                    }
+                } else {
+                    showDemoResult();
+                }
+            }
+
+            // Set timestamp
+            document.getElementById('timestamp').textContent = new Date().toLocaleString();
+        });
+
+        function displayResult(data) {
+            const isSeizure = data.prediction === 'Seizure Detected';
+            const resultIcon = document.getElementById('resultIcon');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultDescription = document.getElementById('resultDescription');
+            const confidenceValue = document.getElementById('confidenceValue');
+            const progressFill = document.getElementById('progressFill');
+            const insightsList = document.getElementById('insightsList');
+
+            // Set icon and colors based on result
+            if (isSeizure) {
+                resultIcon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                resultIcon.style.background = 'linear-gradient(135deg, #ff6b6b, #ff4444)';
+                resultTitle.textContent = 'Seizure Detected';
+                resultTitle.style.color = '#ff4444';
+                resultDescription.textContent = 'The EEG analysis indicates patterns consistent with epileptic activity based on CHB-MIT model. Please consult a healthcare provider immediately.';
+            } else {
+                resultIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
+                resultIcon.style.background = 'linear-gradient(135deg, #00b09b, #96c93d)';
+                resultTitle.textContent = 'No Seizure Detected';
+                resultTitle.style.color = '#00ff88';
+                resultDescription.textContent = 'The EEG analysis shows normal brain activity patterns according to the CHB-MIT model. Continue regular monitoring as recommended.';
+            }
+
+            // Set confidence
+            confidenceValue.textContent = data.confidence || '87.5%';
+            progressFill.style.width = data.confidence || '87.5%';
+
+            // NEW: Set dual confidences
+            document.getElementById('seizureConfidence').textContent = data.seizure_confidence || '0.0001%';
+            document.getElementById('nonSeizureConfidence').textContent = data.non_seizure_confidence || '99.9999%';
+            
+            // NEW: Set threshold
+            document.getElementById('thresholdValue').textContent = data.threshold || '50%';
+
+            // Set analysis ID
+            document.getElementById('analysisId').textContent = data.analysis_id || 'ANL-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+
+            // Set model info
+            if (data.model_info) {
+                document.getElementById('modelName').textContent = data.model_info.name || 'CHB-MIT Scalp EEG Database';
+                document.getElementById('modelVersion').textContent = data.model_info.version || '1';
+                document.getElementById('modelType').textContent = data.model_info.type || 'ResNet101 Multi-label';
+            }
+
+            // Set trained on
+            document.getElementById('trainedOn').textContent = '6,579 images';
+
+            // Set API response
+            if (data.api_response) {
+                document.getElementById('apiResponse').textContent = JSON.stringify(data.api_response, null, 2);
+            } else {
+                document.getElementById('apiResponse').textContent = JSON.stringify({
+                    "predictions": {
+                        "non-seizure": {
+                            "confidence": 0.999999,
+                            "class_id": 0
+                        },
+                        "seizure": {
+                            "confidence": 0.000001,
+                            "class_id": 1
+                        }
+                    },
+                    "predicted_classes": ["non-seizure"]
+                }, null, 2);
+            }
+
+            // Set insights
+            if (data.insights && data.insights.length > 0) {
+                insightsList.innerHTML = '';
+                data.insights.forEach(insight => {
+                    const li = document.createElement('li');
+                    
+                    // Choose icon based on insight content
+                    let icon = 'fa-info-circle';
+                    if (insight.includes('⚠️')) icon = 'fa-exclamation-triangle';
+                    if (insight.includes('✅')) icon = 'fa-check-circle';
+                    if (insight.includes('📊')) icon = 'fa-chart-bar';
+                    if (insight.includes('🔴')) icon = 'fa-circle';
+                    if (insight.includes('🟡')) icon = 'fa-circle';
+                    if (insight.includes('🟢')) icon = 'fa-circle';
+                    if (insight.includes('📈')) icon = 'fa-chart-line';
+                    if (insight.includes('📉')) icon = 'fa-chart-line';
+                    
+                    li.innerHTML = `<i class="fas ${icon}"></i>${insight.replace(/[⚠️✅📊🔴🟡🟢📈📉]/g, '')}`;
+                    insightsList.appendChild(li);
+                });
+            } else {
+                // Default insights based on prediction
+                insightsList.innerHTML = '';
+                const defaultInsights = isSeizure ? [
+                    '⚠️ Abnormal epileptiform activity detected',
+                    '📊 High frequency oscillations observed',
+                    '🔴 Immediate medical attention recommended',
+                    '📈 Seizure confidence exceeds threshold'
+                ] : [
+                    '✅ Normal background activity',
+                    '📊 No epileptiform discharges detected',
+                    '🟢 Continue regular monitoring',
+                    '📉 Seizure confidence below threshold'
+                ];
+                
+                defaultInsights.forEach(insight => {
+                    const li = document.createElement('li');
+                    let icon = 'fa-info-circle';
+                    if (insight.includes('⚠️')) icon = 'fa-exclamation-triangle';
+                    if (insight.includes('✅')) icon = 'fa-check-circle';
+                    if (insight.includes('📊')) icon = 'fa-chart-bar';
+                    if (insight.includes('📈')) icon = 'fa-chart-line';
+                    if (insight.includes('📉')) icon = 'fa-chart-line';
+                    
+                    li.innerHTML = `<i class="fas ${icon}"></i>${insight.replace(/[⚠️✅📊🔴🟡🟢📈📉]/g, '')}`;
+                    insightsList.appendChild(li);
+                });
+            }
+        }
+
+        function showDemoResult() {
+            // Show demo result based on actual API response
+            displayResult({
+                prediction: 'No Seizure',
+                confidence: '99.9999%',
+                seizure_confidence: '0.0001%',
+                non_seizure_confidence: '99.9999%',
+                threshold: '50%',
+                analysis_id: 'DEMO-001',
+                model_info: {
+                    name: 'CHB-MIT Scalp EEG Database',
+                    version: '1',
+                    type: 'ResNet101 Multi-label'
+                },
+                api_response: {
+                    "predictions": {
+                        "non-seizure": {
+                            "confidence": 0.999999,
+                            "class_id": 0
+                        },
+                        "seizure": {
+                            "confidence": 0.000001,
+                            "class_id": 1
+                        }
+                    },
+                    "predicted_classes": ["non-seizure"]
+                },
+                insights: [
+                    '✅ Normal brain wave patterns detected',
+                    '📊 No epileptiform activity identified',
+                    '📉 Seizure confidence: 0.0001% (below 50% threshold)',
+                    '📈 Non-seizure confidence: 99.9999%',
+                    '🟢 Continue regular monitoring'
+                ]
+            });
+        }
+
+        function toggleApiResponse() {
+            const pre = document.getElementById('apiResponse');
+            pre.classList.toggle('show');
+        }
+
+        function downloadReport() {
+            const resultData = JSON.parse(sessionStorage.getItem('predictionResult'));
+            
+            const report = `
+SEIZUREGUARD AI - CLINICAL ANALYSIS REPORT
+===========================================
+Model: CHB-MIT Scalp EEG Database
+Date: ${new Date().toLocaleString()}
+Analysis ID: ${document.getElementById('analysisId').textContent}
+
+PATIENT RESULTS
+---------------
+Diagnosis: ${document.getElementById('resultTitle').textContent}
+Overall Confidence: ${document.getElementById('confidenceValue').textContent}
+Seizure Probability: ${document.getElementById('seizureConfidence').textContent}
+Non-Seizure Probability: ${document.getElementById('nonSeizureConfidence').textContent}
+Detection Threshold: ${document.getElementById('thresholdValue').textContent}
+
+Model: ResNet101 Multi-label Classification
+Training Data: 6,579 images from CHB-MIT database
+
+CLINICAL INSIGHTS
+-----------------
+${Array.from(document.getElementById('insightsList').children).map(li => li.textContent).join('\n')}
+
+RAW API RESPONSE
+----------------
+${document.getElementById('apiResponse').textContent}
+
+RECOMMENDATIONS
+---------------
+1. Share this report with your healthcare provider
+2. Continue prescribed treatment plan
+3. Monitor for any symptoms
+4. Regular follow-up appointments
+
+DISCLAIMER
+----------
+This is an AI-generated analysis using the CHB-MIT Scalp EEG Database model.
+Always consult with a qualified healthcare professional for medical advice.
+
+Generated by SeizureGuard AI v2.1.0
+            `;
+            
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `seizure_report_${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

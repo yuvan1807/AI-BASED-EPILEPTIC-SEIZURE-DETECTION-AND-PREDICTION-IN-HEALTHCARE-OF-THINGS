@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeizureGuard AI - Features</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0a0f1e;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Live EEG Video Background */
+        #live-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -2;
+            opacity: 0.4;
+            filter: hue-rotate(140deg) saturate(1.5);
+        }
+
+        /* Animated EEG Overlay */
+        .eeg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 30% 40%, rgba(0, 255, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 70% 60%, rgba(255, 0, 150, 0.15) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+        /* Animated EEG Lines Canvas */
+        #eegCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* Floating Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: cyan;
+            border-radius: 50%;
+            box-shadow: 0 0 15px cyan;
+            animation: floatParticle 15s linear infinite;
+        }
+
+        @keyframes floatParticle {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% {
+                transform: translateY(-100px) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px 40px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Navigation */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: rgba(10, 15, 30, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            margin-bottom: 60px;
+            animation: slideDown 0.8s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .logo i {
+            color: cyan;
+            font-size: 32px;
+            animation: brainPulse 2s ease infinite;
+        }
+
+        @keyframes brainPulse {
+            0%, 100% { transform: scale(1); text-shadow: 0 0 20px cyan; }
+            50% { transform: scale(1.1); text-shadow: 0 0 40px cyan; }
+        }
+
+        .logo span {
+            background: linear-gradient(135deg, #fff, cyan);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            position: relative;
+            padding: 5px 0;
+            font-size: 16px;
+        }
+
+        .nav-links a::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, cyan, magenta);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::before,
+        .nav-links a.active::before {
+            width: 100%;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn-login, .btn-signup {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-size: 14px;
+        }
+
+        .btn-login {
+            background: transparent;
+            border: 2px solid cyan;
+            color: cyan;
+        }
+
+        .btn-signup {
+            background: linear-gradient(135deg, cyan, magenta);
+            color: white;
+        }
+
+        .btn-login:hover, .btn-signup:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.4);
+        }
+
+        /* Page Header */
+        .page-header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-header h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #fff, cyan);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .page-header p {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .feature-card {
+            background: rgba(10, 15, 30, 0.5);
+            backdrop-filter: blur(10px);
+            padding: 40px 30px;
+            border-radius: 30px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            text-align: center;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.8s ease backwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card:nth-child(1) { animation-delay: 0.1s; }
+        .feature-card:nth-child(2) { animation-delay: 0.2s; }
+        .feature-card:nth-child(3) { animation-delay: 0.3s; }
+        .feature-card:nth-child(4) { animation-delay: 0.4s; }
+        .feature-card:nth-child(5) { animation-delay: 0.5s; }
+        .feature-card:nth-child(6) { animation-delay: 0.6s; }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: cyan;
+            box-shadow: 0 30px 60px rgba(0, 255, 255, 0.3);
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            animation: rotate 10s linear infinite;
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(0, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            font-size: 35px;
+            color: cyan;
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: rotateY(360deg);
+            background: cyan;
+            color: #0a0f1e;
+        }
+
+        .feature-card h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: cyan;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card p {
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-tag {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 5px 15px;
+            background: rgba(0, 255, 255, 0.1);
+            border-radius: 30px;
+            font-size: 12px;
+            color: cyan;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Technology Stack */
+        .tech-stack {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            margin-top: 60px;
+            margin-bottom: 60px;
+        }
+
+        .tech-item {
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .tech-item:hover {
+            background: rgba(0, 255, 255, 0.1);
+            transform: scale(1.05);
+            border-color: cyan;
+        }
+
+        .tech-item i {
+            font-size: 40px;
+            color: cyan;
+            margin-bottom: 15px;
+        }
+
+        .tech-item h4 {
+            font-size: 18px;
+            color: white;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .tech-item p {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .tech-stack {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .navbar {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tech-stack {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-header h1 {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Live Video Background -->
+    <video id="live-bg" autoplay muted loop playsinline>
+        <source src="https://videos.pexels.com/video-files/3121257/3121257-uhd_2560_1440_25fps.mp4" type="video/mp4">
+        <source src="https://videos.pexels.com/video-files/2033618/2033618-uhd_2560_1440_25fps.mp4" type="video/mp4">
+    </video>
+
+    <!-- EEG Overlay -->
+    <div class="eeg-overlay"></div>
+
+    <!-- Animated EEG Canvas -->
+    <canvas id="eegCanvas"></canvas>
+
+    <!-- Floating Particles -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="logo" onclick="window.location.href='/'">
+                <i class="fas fa-brain"></i>
+                <span>SeizureGuard AI</span>
+            </div>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="about">About</a>
+                <a href="features" class="active">Features</a>
+                <a href="how-it-works">How It Works</a>
+                <a href="contact">Contact</a>
+            </div>
+            <div class="nav-buttons">
+                <button class="btn-login" onclick="window.location.href='login'">Login</button>
+                <button class="btn-signup" onclick="window.location.href='signup'">Sign Up</button>
+            </div>
+        </nav>
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>Our Features</h1>
+            <p>Advanced AI-powered features for accurate seizure detection</p>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h3>Deep Learning Model</h3>
+                <p>CNN-LSTM architecture trained on thousands of EEG samples from CHB-MIT database with 98% accuracy</p>
+                <span class="feature-tag">98% Accuracy</span>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3>Real-time Analysis</h3>
+                <p>Instant processing of EEG signals with results in milliseconds for immediate intervention</p>
+                <span class="feature-tag">&lt; 5 seconds</span>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Pattern Recognition</h3>
+                <p>Advanced algorithms to detect epileptic patterns and abnormalities in EEG signals</p>
+                <span class="feature-tag">95% Sensitivity</span>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>HIPAA Compliant</h3>
+                <p>Enterprise-grade security and privacy protection for all medical data processing</p>
+                <span class="feature-tag">Secure</span>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h3>IoHT Integration</h3>
+                <p>Seamless integration with Internet of Healthcare Things devices for continuous monitoring</p>
+                <span class="feature-tag">24/7 Monitoring</span>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-file-medical"></i>
+                </div>
+                <h3>Detailed Reports</h3>
+                <p>Comprehensive analysis with confidence scores, visualizations, and PDF export options</p>
+                <span class="feature-tag">PDF Export</span>
+            </div>
+        </div>
+
+        <!-- Technology Stack -->
+        <h2 class="page-header" style="font-size: 36px;">Technology Stack</h2>
+        <div class="tech-stack">
+            <div class="tech-item">
+                <i class="fas fa-brain"></i>
+                <h4>Deep Learning</h4>
+                <p>TensorFlow & PyTorch</p>
+            </div>
+            <div class="tech-item">
+                <i class="fas fa-wave-square"></i>
+                <h4>Signal Processing</h4>
+                <p>NumPy & SciPy</p>
+            </div>
+            <div class="tech-item">
+                <i class="fas fa-cloud"></i>
+                <h4>Cloud Platform</h4>
+                <p>AWS & Azure</p>
+            </div>
+            <div class="tech-item">
+                <i class="fas fa-database"></i>
+                <h4>Database</h4>
+                <p>CHB-MIT Dataset</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // EEG Wave Animation on Canvas
+        function initEEGCanvas() {
+            const canvas = document.getElementById('eegCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            let time = 0;
+            
+            function drawEEGWaves() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                for (let wave = 0; wave < 5; wave++) {
+                    const yOffset = canvas.height * (0.2 + wave * 0.15);
+                    const amplitude = 30 + wave * 10;
+                    const frequency = 0.02 + wave * 0.005;
+                    
+                    ctx.beginPath();
+                    ctx.strokeStyle = wave % 2 === 0 ? 'cyan' : 'magenta';
+                    ctx.lineWidth = 2;
+                    ctx.globalAlpha = 0.3;
+                    
+                    for (let x = 0; x < canvas.width; x += 5) {
+                        const y = yOffset + 
+                                 Math.sin(x * frequency + time) * amplitude * 0.5 +
+                                 Math.sin(x * frequency * 2 + time * 1.5) * amplitude * 0.3 +
+                                 Math.sin(x * frequency * 3 + time * 2) * amplitude * 0.2;
+                        
+                        if (x === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+                    
+                    ctx.stroke();
+                }
+                
+                time += 0.05;
+                requestAnimationFrame(drawEEGWaves);
+            }
+            
+            drawEEGWaves();
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const canvas = document.getElementById('eegCanvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Initialize everything
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            initEEGCanvas();
+        });
+    </script>
+</body>
+</html>
